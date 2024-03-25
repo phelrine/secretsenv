@@ -1,4 +1,4 @@
-package lib
+package aws
 
 import (
 	"context"
@@ -10,22 +10,27 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/phelrine/secretsenv"
 )
 
-type SecretResult map[string]string
-
-type SecretLoader interface {
-	Load(secretId string, option SecretOption) (SecretResult, error)
+type SecretsManagerLoader struct {
 }
 
-type AWSSecretsManagerLoader struct {
+// NewSecretsManagerLoader creates a new SecretsManagerLoader
+//
+// It creates a new SecretsManagerLoader with default values.
+func NewSecretsManagerLoader() *SecretsManagerLoader {
+	return &SecretsManagerLoader{}
 }
 
-func NewAWSLoader() *AWSSecretsManagerLoader {
-	return &AWSSecretsManagerLoader{}
-}
-
-func (l *AWSSecretsManagerLoader) Load(secretId string, option SecretOption) (SecretResult, error) {
+// Load loads a secret from AWS Secrets Manager
+//
+// It loads a secret from AWS Secrets Manager using the specified secret ID.
+// It returns the secret values as a map of strings where the key is the name
+// of the secret value and the value is the value of the secret value.
+// It returns an error if the secret cannot be loaded. The error may be due to
+// the secret not existing or the user not having permission to access the secret.
+func (l *SecretsManagerLoader) Load(secretId string, option secretsenv.SecretOption) (secretsenv.SecretResult, error) {
 	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(
 		ctx,
@@ -56,7 +61,7 @@ func (l *AWSSecretsManagerLoader) Load(secretId string, option SecretOption) (Se
 	if err != nil {
 		return nil, err
 	}
-	secretResult := make(SecretResult)
+	secretResult := make(secretsenv.SecretResult)
 	for secretKey, secretValue := range secretMap {
 		switch v := secretValue.(type) {
 		case string:

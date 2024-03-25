@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/phelrine/secretsenv/lib"
+	"github.com/phelrine/secretsenv"
+	"github.com/phelrine/secretsenv/aws"
 )
 
 func main() {
-	cli := &lib.CLI{
-		Loaders: map[string]lib.SecretLoader{
-			"aws": lib.NewAWSLoader(),
+	cli := &CLI{
+		Loaders: map[string]secretsenv.SecretLoader{
+			"aws": aws.NewSecretsManagerLoader(),
 		},
 	}
 	err := cli.Parse()

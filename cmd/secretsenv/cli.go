@@ -1,4 +1,4 @@
-package lib
+package main
 
 import (
 	"flag"
@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/phelrine/secretsenv"
 	"gopkg.in/yaml.v3"
 )
 
@@ -13,18 +14,21 @@ type CLI struct {
 	ConfigPath string
 	Args       []string
 	Config     Config
-	Loaders    map[string]SecretLoader
+	Loaders    map[string]secretsenv.SecretLoader
 }
 
 type Config map[string]ConfigItem
+
+// ConfigItem represents a configuration item
+//
+// It contains the type of the loader, the secret ID, the loader options,
+// and the mapping of the secret values to the environment variables.
 type ConfigItem struct {
-	Type     string             `yaml:"type,omitempty"`
-	SecretId string             `yaml:"secretId"`
-	Option   SecretOption       `yaml:"option"`
-	Mapping  map[string]*string `yaml:",inline"`
+	Type     string                  `yaml:"type,omitempty"`
+	SecretId string                  `yaml:"secretId"`
+	Option   secretsenv.SecretOption `yaml:"option"`
+	Mapping  map[string]*string      `yaml:",inline"`
 }
-type SecretOption map[string]interface{}
-type SecretMapping map[string]string
 
 func (c *CLI) Parse() error {
 	flag.StringVar(&c.ConfigPath, "config", "", "path to config file")
@@ -94,6 +98,9 @@ func (c *CLI) Run() error {
 }
 
 // searchConfig searches for the .secretsenv.yml file in the parent directories
+//
+// It starts from the current working directory and goes up the directory tree
+// until it finds the config file or reaches the root directory.
 func (c *CLI) searchConfig() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -113,9 +120,14 @@ func (c *CLI) searchConfig() (string, error) {
 	}
 }
 
-func (c *CLI) mapSecrets(item ConfigItem, secrets SecretResult) (SecretMapping, error) {
-	mappingResult := make(SecretMapping)
-	interpolator := &Interpolator{}
+// mapSecrets maps the secret values to the environment variables
+//
+// It uses the mapping defined in the configuration file to map the secret values
+// to the environment variables. If a mapping is not defined, it uses the variable
+// name as the key.
+func (c *CLI) mapSecrets(item ConfigItem, secrets secretsenv.SecretResult) (secretsenv.SecretMapping, error) {
+	mappingResult := make(secretsenv.SecretMapping)
+	interpolator := &secretsenv.Interpolator{}
 	for variableName, secretKey := range item.Mapping {
 		if secretKey == nil {
 			value, ok := secrets[variableName]
