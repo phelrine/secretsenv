@@ -30,7 +30,7 @@ func NewSecretsManagerLoader() *SecretsManagerLoader {
 // of the secret value and the value is the value of the secret value.
 // It returns an error if the secret cannot be loaded. The error may be due to
 // the secret not existing or the user not having permission to access the secret.
-func (l *SecretsManagerLoader) Load(secretId string, option secretsenv.SecretOption) (secretsenv.SecretResult, error) {
+func (l *SecretsManagerLoader) Load(secretId string, option secretsenv.LoaderOption) (secretsenv.SecretResult, error) {
 	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(
 		ctx,

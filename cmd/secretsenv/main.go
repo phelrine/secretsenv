@@ -9,11 +9,9 @@ import (
 )
 
 func main() {
-	cli := &CLI{
-		Loaders: map[string]secretsenv.SecretLoader{
-			"aws": aws.NewSecretsManagerLoader(),
-		},
-	}
+	cli := NewCLI(map[string]secretsenv.SecretLoader{
+		"aws": aws.NewSecretsManagerLoader(),
+	})
 	err := cli.Parse()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error parsing command line: %v\n", err)
